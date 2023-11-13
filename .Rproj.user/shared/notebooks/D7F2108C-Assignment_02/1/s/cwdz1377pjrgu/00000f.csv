@@ -1,0 +1,7 @@
+"0",""
+"0","# 此处只展示STATE_CODE等于6且SHRP_ID等于0501这个section的结果"
+"0","any_section <- data_02_noIRINA |>"
+"0","               dplyr::filter(STATE_CODE==6, grepl(""0501"", SHRP_ID))"
+"0",""
+"0","any_section |> "
+"0","  dplyr::arrange(desc(IRI))"

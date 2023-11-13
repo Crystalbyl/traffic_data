@@ -1,0 +1,24 @@
+---
+title: "github_advice"
+author: "2333066 白玉龙"
+date: "`r Sys.Date()`"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+    includes:
+      in_header: header.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## git use
+
+**Push your homework to a git repository (bonus problem for 5 points)**
+
+-   Provide a link to your repository as well as a screenshot of your repository
+-   You can use an IDE or use the command line interface of git
+-   Rstudio has a Git tab next to Connections and Tutorial
+
+## advice for this course

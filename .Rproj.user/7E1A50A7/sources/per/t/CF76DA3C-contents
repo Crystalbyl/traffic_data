@@ -1,0 +1,178 @@
+---
+title: "Assignment 02"
+author: "2333066 白玉龙"
+date: "`r Sys.Date()`"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+    includes:
+      in_header: header.tex
+    #keep_tex: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+```
+
+## Part 1: Using the iri dateset
+
+**Step 1: Get a subset with STATE_CODE 6 and SHRP_ID starting with 050.**
+
+```{r subset}
+
+data_02 <- read.csv("../Data/LTPP/iri.csv")
+sub_data <- data_02 |>
+            dplyr::filter(STATE_CODE==6, grepl("050", SHRP_ID))
+
+sub_data |>
+  head(10)
+```
+
+**Step 2: obtain the summary statistics of IRI of each section: min, max, and mean**
+
+```{r summary}
+
+# drop NA -  also use drop.na()
+data_02_noIRINA <-  dplyr::filter(data_02, !is.na(IRI))
+
+summary_stat <- data_02_noIRINA |>
+                dplyr::group_by(STATE_CODE, SHRP_ID) |>
+                summarise(
+                  min_value = min(IRI),
+                  max_value = max(IRI),
+                  mean_value = mean(IRI),
+                  .groups = 'drop'
+)
+
+summary_stat |>
+  head(10)
+```
+
+**Step 3: Sort the summarized data by the averaged IRI in a descending order (report results for one section only)**
+
+*注意: 此处，我们将iri.csv 数据集中的IRI当作Averaged IRI进行展示*
+
+```{r sort}
+
+# 此处只展示STATE_CODE等于6且SHRP_ID等于0501这个section的结果
+any_section <- data_02_noIRINA |>
+               dplyr::filter(STATE_CODE==6, grepl("0501", SHRP_ID))
+
+any_section |> 
+  dplyr::arrange(desc(IRI))
+
+```
+
+**Step 4: Generate a scatter plot for the averaged IRI against the time for a selected section, and then give your interpretation of the plot:**
+
+• *HINT 1: mean IRI vs. date*
+
+• *HINT 2: STATE_CODE and SHRP_ID together to form a primary key that uniquely identifies a section.*  
+
+
+*注意: 此处，我们仍然将iri.csv 数据集中的IRI当作Averaged IRI进行处理*
+
+```{r plot}
+
+# transform the str {%y-%m-%d} into the timestamp
+str2stamp <- function(object) {
+             data.frame(DATE_FIX = strptime(object, format = "%y-%m-%d" ))
+}
+
+# extract the {%y-%m-%d} from the origin date
+date_fix <- data.frame()
+for (i in any_section$VISIT_DATE) {
+  month_str <- strsplit(i, "/")[[1]][1]
+  day_str <- strsplit(i, "/")[[1]][2]
+  mid_str <- strsplit(i, "/")[[1]][3]
+  year_str <- strsplit(mid_str, ",")[[1]][1]
+
+  tstmap <- paste(year_str, month_str, day_str, sep = "-") |>
+            str2stamp()
+            
+  date_fix <- rbind(date_fix, tstmap)
+}
+
+# plot data
+plot(
+  x = date_fix$DATE_FIX,
+  y = any_section$IRI,
+  xlab = "Date",
+  ylab = "(Averaged) IRI"
+)
+
+```
+
+**Interpretation :**
+从绘图中可以看出，除了1990年的（平均）IRI过高，从1995年依赖到2005年的（平均）IRI在逐渐升高。这种现象有可能是因为IRI的计算方式不一致导致的。   
+
+
+
+
+## Part 2: Using the CRSS datasets in 2017
+
+**Step 1: Get the intersection of the datasets accident and person**
+
+```{r intersection}
+
+accidents <- read.csv("../Data/CRSS/ACCIDENT.csv")
+persons <- read.csv("../Data/CRSS/PERSON.csv")
+vehicles <- read.csv("../Data/CRSS/VEHICLE.CSV")
+
+acc_per_cross <- inner_join(
+                 x = accidents,
+                 y = persons,
+                 by = c("CASENUM", "PSU")) |>
+                 distinct()
+
+acc_per_cross |>
+  head(1)
+```
+
+**Step 2: Tabulate the total number of observations in each injury severity (INJ_SEV)**
+
+• *HINT: use summarise() and group_by()*
+
+*查找原数据可得，MAX_SEV是事故类型，NUM_TNJ是伤亡人数*   
+
+
+*https://www.nhtsa.gov/file-downloads?p=nhtsa/downloads/CRSS/*
+
+```{r Tabulate}
+
+acc_view <- accidents|>
+            group_by(MAX_SEV)|>
+            summarise(
+              INJ_SEV = sum(NUM_INJ),
+              .groups = 'drop'
+            )
+
+acc_view |>
+  head(10)
+```
+
+**Step 3: Merge the accident dataset with the vehicle dataset, and report the dimension of your results and number of missing values in one variable of the right dataset**
+
+• *HINT: left_join()*
+
+```{r Merge, collapse=TRUE, results='hold'}
+
+acc_veh_left <- left_join(
+                x = accidents,
+                y = vehicles,
+                by = c("CASENUM", "PSU")) |>
+                distinct()
+
+acc_veh_left_dim <- dim(acc_veh_left)
+num_of_missing <- colSums(is.na(acc_veh_left))
+
+cat("The dimension of my result: ", acc_veh_left_dim, "\n")
+cat("The number of missing values in all variables of the right dataset: ", 
+     num_of_missing, 
+     fill = TRUE
+) 
+```
+
+**Analysis :** 根据最后的结果，我们可以得出结论，在将事故数据集与车辆数据集合并时，车辆数据集中的所有变量都没有缺失值。

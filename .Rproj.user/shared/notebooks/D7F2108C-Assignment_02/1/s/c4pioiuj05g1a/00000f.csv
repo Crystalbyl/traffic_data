@@ -1,0 +1,7 @@
+"0",""
+"0","data_02 <- read.csv(""../Data/LTPP/iri.csv"")"
+"0","sub_data <- data_02 |>"
+"0","            dplyr::filter(STATE_CODE==6, grepl(""050"", SHRP_ID))"
+"0",""
+"0","sub_data |>"
+"0","  head(10)"
