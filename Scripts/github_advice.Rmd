@@ -21,4 +21,8 @@ knitr::opts_chunk$set(echo = TRUE)
 -   You can use an IDE or use the command line interface of git
 -   Rstudio has a Git tab next to Connections and Tutorial
 
+[**github链接**](https://github.com/Crystalbyl/traffic_data)
+
+![](../Outputs/github_screenshot.png)
+
 ## advice for this course
